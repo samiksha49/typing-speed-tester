@@ -1,0 +1,94 @@
+import tkinter as tk
+from time import perf_counter
+import random
+import difflib
+
+# Sample test sentences
+SENTENCES = [
+    "The quick brown fox jumps over the lazy dog.",
+    "Practice makes perfect.",
+    "Python programming is fun.",
+    "Typing speed test code in python."
+]
+
+class TypingTestApp:
+    def __init__(self, master):
+        self.master = master
+        master.title("Typing Speed Test")
+        master.geometry("600x300")
+        self.start_time = None
+        self.target = ""
+
+        # Welcome Screen
+        self.welcome_label = tk.Label(
+            master, text="Welcome to Typing Speed Test!",
+            font=("Helvetica", 18, "bold")
+        )
+        self.welcome_label.pack(pady=40)
+
+        self.start_btn = tk.Button(
+            master, text="Start", font=("Helvetica", 14),
+            command=self.start_test
+        )
+        self.start_btn.pack()
+
+    def start_test(self):
+        # Transition to typing screen
+        self.welcome_label.pack_forget()
+        self.start_btn.pack_forget()
+
+        self.target = random.choice(SENTENCES)
+        self.target_label = tk.Label(
+            self.master, text=self.target,
+            font=("Helvetica", 14), wraplength=560
+        )
+        self.target_label.pack(pady=(20,10))
+
+        self.entry = tk.Entry(self.master, width=70, font=("Helvetica", 12))
+        self.entry.pack()
+        self.entry.focus_set()
+
+        self.complete_btn = tk.Button(
+            self.master, text="Complete", font=("Helvetica", 14),
+            command=self.finish_test
+        )
+        self.complete_btn.pack(pady=10)
+
+        self.start_time = perf_counter()
+
+    def finish_test(self):
+        elapsed = perf_counter() - self.start_time
+        typed = self.entry.get().strip()
+
+        # Speed in words per minute
+        wpm = round(len(typed.split()) * 60 / elapsed, 2) if elapsed > 0 else 0
+
+        # Calculate accuracy
+        matcher = difflib.SequenceMatcher(None, self.target, typed)
+        accuracy = round(matcher.ratio() * 100, 2)
+
+        # Clear screen and display results
+        self.target_label.pack_forget()
+        self.entry.pack_forget()
+        self.complete_btn.pack_forget()
+
+        result_text = f"Time: {elapsed:.2f}s    Speed: {wpm} WPM    Accuracy: {accuracy}%"
+        self.result_label = tk.Label(self.master, text=result_text, font=("Helvetica", 14))
+        self.result_label.pack(pady=40)
+
+        self.restart_btn = tk.Button(
+            self.master, text="Restart", font=("Helvetica", 14),
+            command=self.restart
+        )
+        self.restart_btn.pack()
+
+    def restart(self):
+        # Reset UI
+        self.result_label.pack_forget()
+        self.restart_btn.pack_forget()
+        self.__init__(self.master)
+
+if __name__ == "__main__":
+    root = tk.Tk()
+    app = TypingTestApp(root)
+    root.mainloop()
